@@ -4,6 +4,7 @@ namespace Laravel\Telescope\Storage;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Laravel\Telescope\Database\Factories\EntryModelFactory;
 
 class EntryModel extends Model
@@ -107,7 +108,10 @@ class EntryModel extends Model
     }
 
     /**
-     * Scope the query for the given type.
+     * Scope the query for the given tag(s).
+     *
+     * Supports multiple comma-separated tags with AND matching.
+     * For example, "Auth:1,slow" will return entries that have BOTH tags.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  \Laravel\Telescope\Storage\EntryQueryOptions  $options
@@ -116,17 +120,32 @@ class EntryModel extends Model
     protected function whereTag($query, EntryQueryOptions $options)
     {
         $query->when($options->tag, function ($query, $tag) {
-            $tags = collect(explode(',', $tag))->map(fn ($tag) => trim($tag));
+            $tags = collect(explode(',', $tag))
+                ->map(fn ($t) => trim($t))
+                ->filter()
+                ->values();
 
             if ($tags->isEmpty()) {
                 return $query;
             }
 
             return $query->whereIn('uuid', function ($query) use ($tags) {
-                $query->select('entry_uuid')->from('telescope_entries_tags')
-                    ->whereIn('entry_uuid', function ($query) use ($tags) {
-                        $query->select('entry_uuid')->from('telescope_entries_tags')->whereIn('tag', $tags->all());
-                    });
+                if ($tags->count() === 1) {
+                    // Single tag: simple lookup
+                    $query->select('entry_uuid')
+                        ->from('telescope_entries_tags')
+                        ->where('tag', $tags->first());
+                } else {
+                    // Multiple tags: find entries that have ALL specified tags
+                    $query->select('entry_uuid')
+                        ->fromSub(function ($query) use ($tags) {
+                            $query->select('entry_uuid', DB::raw('COUNT(DISTINCT tag) as tag_count'))
+                                ->from('telescope_entries_tags')
+                                ->whereIn('tag', $tags->all())
+                                ->groupBy('entry_uuid');
+                        }, 'matched_tags')
+                        ->where('tag_count', $tags->count());
+                }
             });
         });
 

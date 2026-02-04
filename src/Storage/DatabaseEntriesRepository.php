@@ -142,7 +142,7 @@ class DatabaseEntriesRepository implements Contract, ClearableRepository, Prunab
         $table = $this->table('telescope_entries');
 
         $entries->chunk($this->chunkSize)->each(function ($chunked) use ($table) {
-            $table->insert($chunked->map(function ($entry) {
+            $table->insertOrIgnore($chunked->map(function ($entry) {
                 $entry->content = json_encode($entry->content, JSON_INVALID_UTF8_SUBSTITUTE);
 
                 return $entry->toArray();
@@ -161,7 +161,7 @@ class DatabaseEntriesRepository implements Contract, ClearableRepository, Prunab
     protected function storeExceptions(Collection $exceptions)
     {
         $exceptions->chunk($this->chunkSize)->each(function ($chunked) {
-            $this->table('telescope_entries')->insert($chunked->map(function ($exception) {
+            $this->table('telescope_entries')->insertOrIgnore($chunked->map(function ($exception) {
                 $occurrences = $this->countExceptionOccurences($exception);
 
                 $this->table('telescope_entries')
