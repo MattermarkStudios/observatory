@@ -76,7 +76,8 @@ class DatabaseEntriesRepository implements Contract, ClearableRepository, Prunab
             $entry->family_hash,
             $entry->content,
             $entry->created_at,
-            $tags
+            $tags,
+            $entry->meta,
         );
     }
 

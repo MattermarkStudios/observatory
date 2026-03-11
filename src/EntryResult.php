@@ -63,6 +63,13 @@ class EntryResult implements JsonSerializable
     private $tags;
 
     /**
+     * The entry's metadata.
+     *
+     * @var array|null
+     */
+    public $meta;
+
+    /**
      * The generated URL to the entry user's avatar.
      *
      * @var string
@@ -81,11 +88,12 @@ class EntryResult implements JsonSerializable
      * @param  \Carbon\CarbonInterface|\Carbon\Carbon  $createdAt
      * @param  array  $tags
      */
-    public function __construct($id, $sequence, string $batchId, string $type, ?string $familyHash, array $content, $createdAt, $tags = [])
+    public function __construct($id, $sequence, string $batchId, string $type, ?string $familyHash, array $content, $createdAt, $tags = [], ?array $meta = null)
     {
         $this->id = $id;
         $this->type = $type;
         $this->tags = $tags;
+        $this->meta = $meta;
         $this->batchId = $batchId;
         $this->content = $content;
         $this->sequence = $sequence;
@@ -120,6 +128,7 @@ class EntryResult implements JsonSerializable
             'type' => $this->type,
             'content' => $this->content,
             'tags' => $this->tags,
+            'meta' => $this->meta,
             'family_hash' => $this->familyHash,
             'created_at' => $this->createdAt->toDateTimeString(),
         ])->when($this->avatar, function ($items) {

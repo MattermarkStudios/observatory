@@ -32,6 +32,7 @@ class EntryModel extends Model
      */
     protected $casts = [
         'content' => 'json',
+        'meta' => 'json',
     ];
 
     /**

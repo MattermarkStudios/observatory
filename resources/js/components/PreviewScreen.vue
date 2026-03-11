@@ -216,6 +216,15 @@ export default {
                             </td>
                         </tr>
 
+                        <tr v-if="entry.meta && entry.meta.datadog_url">
+                            <td class="table-fit text-muted">Datadog</td>
+                            <td>
+                                <a :href="entry.meta.datadog_url" target="_blank" rel="noopener noreferrer" class="control-action">
+                                    View Trace in Datadog &rarr;
+                                </a>
+                            </td>
+                        </tr>
+
                         <tr v-if="entry.tags.length">
                             <td class="table-fit text-muted">Tags</td>
                             <td>
