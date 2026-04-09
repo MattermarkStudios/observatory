@@ -57,6 +57,13 @@ class IncomingEntry
     public $tags = [];
 
     /**
+     * The entry's metadata for external service linking.
+     *
+     * @var array|null
+     */
+    public $meta;
+
+    /**
      * The DateTime that indicates when the entry was recorded.
      *
      * @var \DateTimeInterface
@@ -163,6 +170,19 @@ class IncomingEntry
     public function tags(array $tags)
     {
         $this->tags = array_unique(array_merge($this->tags, $tags));
+
+        return $this;
+    }
+
+    /**
+     * Merge metadata into the entry's existing meta.
+     *
+     * @param  array  $meta
+     * @return $this
+     */
+    public function meta(array $meta)
+    {
+        $this->meta = array_merge($this->meta ?? [], $meta);
 
         return $this;
     }
@@ -346,6 +366,7 @@ class IncomingEntry
             'family_hash' => $this->familyHash,
             'type' => $this->type,
             'content' => $this->content,
+            'meta' => $this->meta,
             'created_at' => $this->recordedAt->toDateTimeString(),
         ];
     }

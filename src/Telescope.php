@@ -62,6 +62,13 @@ class Telescope
     public static $tagUsing = [];
 
     /**
+     * The callbacks that add metadata to the record.
+     *
+     * @var \Closure[]
+     */
+    public static $metaUsing = [];
+
+    /**
      * The list of queued entries to be stored.
      *
      * @var array
@@ -326,6 +333,14 @@ class Telescope
         $entry->type($type)->tags(Arr::collapse(array_map(function ($tagCallback) use ($entry) {
             return $tagCallback($entry);
         }, static::$tagUsing)));
+
+        foreach (static::$metaUsing as $metaCallback) {
+            $result = $metaCallback($entry);
+
+            if (is_array($result)) {
+                $entry->meta($result);
+            }
+        }
 
         static::withoutRecording(function () use ($entry) {
             if (collect(static::$filterUsing)->every->__invoke($entry)) {
@@ -637,6 +652,19 @@ class Telescope
     public static function tag(Closure $callback)
     {
         static::$tagUsing[] = $callback;
+
+        return new static;
+    }
+
+    /**
+     * Add a callback that adds metadata to the record.
+     *
+     * @param  \Closure  $callback
+     * @return static
+     */
+    public static function meta(Closure $callback)
+    {
+        static::$metaUsing[] = $callback;
 
         return new static;
     }

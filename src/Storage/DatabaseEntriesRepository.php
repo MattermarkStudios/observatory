@@ -146,6 +146,10 @@ class DatabaseEntriesRepository implements Contract, ClearableRepository, Prunab
             $table->insertOrIgnore($chunked->map(function ($entry) {
                 $entry->content = json_encode($entry->content, JSON_INVALID_UTF8_SUBSTITUTE);
 
+                if ($entry->meta !== null) {
+                    $entry->meta = json_encode($entry->meta);
+                }
+
                 return $entry->toArray();
             })->toArray());
         });
@@ -177,6 +181,7 @@ class DatabaseEntriesRepository implements Contract, ClearableRepository, Prunab
                         array_merge($exception->content, ['occurrences' => $occurrences + 1]),
                         JSON_INVALID_UTF8_SUBSTITUTE
                     ),
+                    'meta' => $exception->meta !== null ? json_encode($exception->meta) : null,
                 ]);
             })->toArray());
         });
